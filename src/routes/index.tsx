@@ -1,26 +1,39 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { TopBar } from "@/components/TopBar";
+import { Sidebar } from "@/components/Sidebar";
+import { MainCanvas } from "@/components/MainCanvas";
+import { OnboardingModal } from "@/components/OnboardingModal";
+import { OutreachDrawer } from "@/components/OutreachDrawer";
+import { GraphStateProvider } from "@/hooks/useGraphState";
+import { OnboardingProvider } from "@/hooks/useOnboarding";
+import { OutreachProvider } from "@/hooks/useOutreach";
 
 export const Route = createFileRoute("/")({
   component: Index,
+  head: () => ({
+    meta: [
+      { title: "Nexus — Network graph intelligence" },
+      { name: "description", content: "Map your professional network, find warm paths into target companies, and generate outreach with AI." },
+    ],
+  }),
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
-
 function Index() {
-  return <PlaceholderIndex />;
+  return (
+    <GraphStateProvider>
+      <OnboardingProvider>
+        <OutreachProvider>
+          <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+            <TopBar />
+            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+              <Sidebar />
+              <MainCanvas />
+            </div>
+            <OutreachDrawer />
+            <OnboardingModal />
+          </div>
+        </OutreachProvider>
+      </OnboardingProvider>
+    </GraphStateProvider>
+  );
 }
