@@ -14,7 +14,7 @@ function initials(name: string): string {
 
 export function NodeContextPanel() {
   const { selectedNode, activePath } = useGraphState();
-  const { setOpen } = useOutreach();
+  const { openFor } = useOutreach();
   if (!selectedNode) return null;
 
   const warm = selectedNode.warmness ?? 0;
@@ -71,7 +71,7 @@ export function NodeContextPanel() {
       <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.06)', margin: '10px 0' }} />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-        <button onClick={() => setOpen(true)} className="nx-btn-primary" style={{
+        <button onClick={() => selectedNode && openFor(selectedNode)} className="nx-btn-primary" style={{
           width: '100%', padding: '7px 10px', borderRadius: 6,
           border: '0.5px solid rgba(244,167,66,0.40)', background: 'rgba(244,167,66,0.09)',
           color: '#F4A742', fontSize: 11, fontWeight: 500,

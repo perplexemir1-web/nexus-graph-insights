@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { X, RefreshCw, Copy, Check } from 'lucide-react';
 import { useOutreach } from '@/hooks/useOutreach';
 
-const defaultMsg = "Hi Priya, I came across your profile while exploring the ML engineering space at Google. I'm a CS grad from UM and noticed we share the same alma mater — small world! I've been working on [X] and would love to hear how you navigated the transition into Google. Would you be open to a quick 15-min chat? No agenda, just curious to learn from your experience.";
-
 export function OutreachDrawer() {
-  const { open, setOpen, msgType, setMsgType, tone, setTone } = useOutreach();
-  const [msg, setMsg] = useState(defaultMsg);
+  const {
+    open, setOpen, msgType, setMsgType, tone, setTone,
+    targetNode, message, setMessage, isGenerating, generateMessage,
+  } = useOutreach();
   const [copied, setCopied] = useState(false);
 
   const onCopy = async () => {
-    try { await navigator.clipboard.writeText(msg); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {}
+    try { await navigator.clipboard.writeText(message); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {}
   };
 
   return (
@@ -22,14 +22,13 @@ export function OutreachDrawer() {
       transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
       display: 'flex', flexDirection: 'column',
     }}>
-      {/* Header */}
       <div style={{
         padding: '16px 18px', borderBottom: '0.5px solid rgba(255,255,255,0.06)',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
         <div>
           <div style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.80)' }}>Outreach generator</div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>Priya Sharma · Google</div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{targetNode?.name ?? '—'} · {targetNode?.sub ?? '—'}</div>
         </div>
         <button onClick={() => setOpen(false)} className="nx-icon-btn" style={{
           width: 28, height: 28, border: 'none', background: 'transparent', cursor: 'pointer',
@@ -39,12 +38,18 @@ export function OutreachDrawer() {
         </button>
       </div>
 
-      {/* Body */}
       <div className="nx-scroll" style={{
         padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14,
         overflowY: 'auto', flex: 1,
       }}>
-        <PillGroup options={['LinkedIn DM', 'Coffee chat', 'Referral ask']} value={msgType} onChange={setMsgType} />
+        <PillGroup
+          options={['LinkedIn DM', 'Coffee chat', 'Referral ask']}
+          value={msgType}
+          onChange={v => {
+            setMsgType(v);
+            if (targetNode) generateMessage(targetNode, v, tone);
+          }}
+        />
 
         <div style={{
           background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)',
@@ -54,33 +59,72 @@ export function OutreachDrawer() {
             fontSize: 9, color: 'rgba(255,255,255,0.25)',
             textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 7,
           }}>Using these details</div>
-          <DRow k="Shared school" v="University of Malaya, CS" />
+          <DRow k="Shared school" v={targetNode?.university ?? 'Unknown'} />
           <DRow k="Mutual contact" v="James Tan" last />
         </div>
 
         <div>
           <Label>Generated message</Label>
-          <textarea className="nx-textarea" value={msg} onChange={e => setMsg(e.target.value)} style={{
-            width: '100%', minHeight: 140, background: 'rgba(255,255,255,0.03)',
-            border: '0.5px solid rgba(255,255,255,0.10)', borderRadius: 7,
-            padding: 12, fontSize: 12, color: 'rgba(255,255,255,0.70)',
-            lineHeight: 1.6, resize: 'vertical', fontFamily: 'inherit',
-          }} />
+          <div style={{ position: 'relative' }}>
+            {isGenerating && (
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 12,
+                color: 'rgba(255,255,255,0.35)',
+                fontStyle: 'italic',
+                pointerEvents: 'none',
+              }}>
+                Writing your message...
+              </div>
+            )}
+            <textarea
+              className="nx-textarea"
+              value={isGenerating ? '' : message}
+              onChange={e => setMessage(e.target.value)}
+              placeholder={isGenerating
+                ? 'Writing your message...'
+                : 'Your message will appear here'}
+              style={{
+                width: '100%', minHeight: 140, background: 'rgba(255,255,255,0.03)',
+                border: '0.5px solid rgba(255,255,255,0.10)', borderRadius: 7,
+                padding: 12, fontSize: 12, color: 'rgba(255,255,255,0.70)',
+                lineHeight: 1.6, resize: 'vertical', fontFamily: 'inherit',
+              }}
+            />
+          </div>
         </div>
 
         <div>
           <Label>Tone</Label>
-          <PillGroup options={['Warm', 'Formal', 'Bold']} value={tone} onChange={setTone} />
+          <PillGroup
+            options={['Warm', 'Formal', 'Bold']}
+            value={tone}
+            onChange={v => {
+              setTone(v);
+              if (targetNode) generateMessage(targetNode, msgType, v);
+            }}
+          />
         </div>
 
         <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-          <button className="nx-btn-secondary" style={{
-            flex: 1, padding: 8, borderRadius: 6,
-            border: '0.5px solid rgba(255,255,255,0.12)', background: 'transparent',
-            color: 'rgba(255,255,255,0.50)', fontSize: 11,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.12s',
-          }}>
+          <button
+            onClick={() => targetNode && generateMessage(targetNode, msgType, tone)}
+            disabled={isGenerating}
+            className="nx-btn-secondary"
+            style={{
+              flex: 1, padding: 8, borderRadius: 6,
+              border: '0.5px solid rgba(255,255,255,0.12)', background: 'transparent',
+              color: 'rgba(255,255,255,0.50)', fontSize: 11,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              cursor: isGenerating ? 'not-allowed' : 'pointer',
+              opacity: isGenerating ? 0.4 : 1,
+              fontFamily: 'inherit', transition: 'all 0.12s',
+            }}
+          >
             <RefreshCw size={13} strokeWidth={1.8} /> Regenerate
           </button>
           <button onClick={onCopy} className="nx-modal-cta" style={{
