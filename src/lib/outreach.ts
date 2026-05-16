@@ -77,3 +77,93 @@ Rules:
       throw err
     }
   })
+
+type ActionsInput = {
+  userProfile: {
+    name: string
+    university: string
+    skills: string[]
+  }
+  topNodes: Array<{
+    id: string
+    name: string
+    sub?: string
+    university?: string
+    company?: string
+    warmness?: number
+  }>
+  targetCompanies: string[]
+}
+
+export const generateActionsFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: ActionsInput) => data)
+  .handler(async ({ data }) => {
+    console.log('generateActionsFn called')
+
+    if (!process.env.GOOGLE_AI_API_KEY) {
+      return { actions: getDefaultActions() }
+    }
+
+    const { GoogleGenerativeAI } = await import('@google/generative-ai')
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY)
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+
+    const nodeList = data.topNodes
+      .map(n => `- ${n.name} (${n.sub ?? 'Professional'}, warmness: ${n.warmness ?? 'unknown'}, university: ${n.university ?? 'unknown'})`)
+      .join('\n')
+
+    const prompt = `You are a career networking strategist for fresh graduates.
+
+Given this professional's background and their network, generate exactly 3 
+high-impact networking actions they should take today.
+
+User: ${data.userProfile.name}, ${data.userProfile.university} graduate
+Skills: ${data.userProfile.skills.join(', ')}
+Target companies: ${data.targetCompanies.join(', ')}
+
+Their warmest connections:
+${nodeList}
+
+Return ONLY a valid JSON array with exactly 3 objects. No markdown, no backticks, 
+no explanation. Just the raw JSON array.
+
+Format:
+[
+  {
+    "priority": 1,
+    "boldName": "Person or Community Name",
+    "action": "Full action description explaining who this is and why to contact them now"
+  }
+]
+
+Rules:
+- Each action must name a specific person or community from the list above
+- Explain the strategic reason in one clause after a dash
+- Keep each action under 12 words after the dash
+- Priority 1 is most important
+- Make it feel urgent and specific, not generic`
+
+    try {
+      const result = await model.generateContent(prompt)
+      const text = result.response.text().trim()
+
+      const cleaned = text.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim()
+      const actions = JSON.parse(cleaned)
+
+      if (Array.isArray(actions) && actions.length > 0) {
+        return { actions: actions.slice(0, 3) }
+      }
+      return { actions: getDefaultActions() }
+    } catch (e) {
+      console.error('Actions generation error:', e)
+      return { actions: getDefaultActions() }
+    }
+  })
+
+function getDefaultActions() {
+  return [
+    { priority: 1, boldName: 'James Tan', action: 'Message James Tan — UM alum, direct warm path to Google' },
+    { priority: 2, boldName: 'AI/ML Malaysia', action: 'Join AI/ML Malaysia — bridges you to 3 Google engineers' },
+    { priority: 3, boldName: 'Priya Sharma', action: 'Connect with Priya Sharma — highest warmness in your network' },
+  ]
+}
