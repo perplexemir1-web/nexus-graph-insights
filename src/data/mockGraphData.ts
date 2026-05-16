@@ -22,6 +22,7 @@ export const mockGraphData: MockGraphData = {
     { id: 'co-grab',   name: 'Grab',    kind: 'company', val: 14 },
     { id: 'co-shopee', name: 'Shopee',  kind: 'company', val: 14 },
     { id: 'co-airbnb', name: 'Airbnb',  kind: 'company', val: 14 },
+    { id: 'co-meta', name: 'Meta', kind: 'company', val: 14 },
 
     { id: 'p-1',  name: 'James Tan',    kind: 'person', sub: 'SWE · Google',       university: 'UM',   company: 'co-google', warmness: 82, val: 9 },
     { id: 'p-2',  name: 'Priya Sharma', kind: 'person', sub: 'ML Eng · Google',    university: 'UM',   company: 'co-google', warmness: 78, val: 9 },

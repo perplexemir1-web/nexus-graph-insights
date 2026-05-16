@@ -2,6 +2,22 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 import type { GraphNode } from '@/types/graph.types';
 import type { MockGraphData } from '@/data/mockGraphData';
 
+export type GapAnalysis = {
+  fitScore: number
+  hasSkills: string[]
+  missingSkills: string[]
+  quickestWin: string
+}
+
+export type WarmPathPlan = {
+  message: string
+  weeks: Array<{
+    week: number
+    action: string
+    reason: string
+  }>
+}
+
 interface GraphStateCtx {
   selectedNode: GraphNode | null;
   setSelectedNode: (n: GraphNode | null) => void;
@@ -17,6 +33,16 @@ interface GraphStateCtx {
   setActiveToolbar: (k: string) => void;
   highlightedCompany: string | null;
   setHighlightedCompany: (k: string | null) => void;
+  selectedCompany: GraphNode | null;
+  setSelectedCompany: (n: GraphNode | null) => void;
+  gapAnalysis: GapAnalysis | null;
+  setGapAnalysis: (analysis: GapAnalysis | null) => void;
+  isGeneratingGap: boolean;
+  setIsGeneratingGap: (v: boolean) => void;
+  warmPathPlan: WarmPathPlan | null;
+  setWarmPathPlan: (plan: WarmPathPlan | null) => void;
+  isGeneratingPlan: boolean;
+  setIsGeneratingPlan: (v: boolean) => void;
 }
 
 const Ctx = createContext<GraphStateCtx | null>(null);
@@ -39,6 +65,11 @@ export function GraphStateProvider({ children }: { children: ReactNode }) {
   const [activeAgent, setActiveAgent] = useState('Pathfinder');
   const [activeToolbar, setActiveToolbar] = useState('Path mode');
   const [highlightedCompany, setHighlightedCompany] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<GraphNode | null>(null);
+  const [gapAnalysis, setGapAnalysis] = useState<GapAnalysis | null>(null);
+  const [isGeneratingGap, setIsGeneratingGap] = useState(false);
+  const [warmPathPlan, setWarmPathPlan] = useState<WarmPathPlan | null>(null);
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
 
   const toggleFilter = (k: string) => setFilters(f => ({ ...f, [k]: !f[k] }));
   const loadGraphData = (data: MockGraphData) => {
@@ -52,6 +83,9 @@ export function GraphStateProvider({ children }: { children: ReactNode }) {
       selectedNode, setSelectedNode, activePath, setActivePath, graphData, loadGraphData,
       activeFilters, toggleFilter, activeAgent, setActiveAgent,
       activeToolbar, setActiveToolbar, highlightedCompany, setHighlightedCompany,
+      selectedCompany, setSelectedCompany, gapAnalysis, setGapAnalysis,
+      isGeneratingGap, setIsGeneratingGap, warmPathPlan, setWarmPathPlan,
+      isGeneratingPlan, setIsGeneratingPlan,
     }}>
       {children}
     </Ctx.Provider>

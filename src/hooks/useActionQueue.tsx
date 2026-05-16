@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { generateActionsFn } from '@/lib/outreach'
 import { useGraphState } from '@/hooks/useGraphState'
 
-const AI_ACTIONS_ENABLED = true
+const AI_ACTIONS_ENABLED = false
 
 const DEFAULT_ACTIONS = [
   { priority: 1, boldName: 'James Tan', action: 'Message James Tan — UM alum, direct warm path to Google' },

@@ -10,6 +10,9 @@ import { GraphPlaceholder } from './GraphPlaceholder';
 import { NodeContextPanel } from './NodeContextPanel';
 import { ActionQueuePanel } from './ActionQueuePanel';
 import { LegendPanel } from './LegendPanel';
+import { GapAnalysisPanel } from './GapAnalysisPanel';
+import { WarmPathPlanPanel } from './WarmPathPlanPanel';
+import { generateWarmPathPlanFn, generateGapAnalysisFn } from '@/lib/outreach';
 
 export function MainCanvas() {
   const {
@@ -18,6 +21,11 @@ export function MainCanvas() {
     setSelectedNode,
     activePath,
     setActivePath,
+    setSelectedCompany,
+    setWarmPathPlan,
+    setIsGeneratingPlan,
+    setGapAnalysis,
+    setIsGeneratingGap,
   } = useGraphState();
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
@@ -182,9 +190,74 @@ export function MainCanvas() {
 
               if (n.kind === 'company') {
                 if (!graphData) return;
+                setSelectedCompany(n);
                 const path = findWarmPath(graphData, DEMO_USER_ID, n.id);
                 setActivePath(path);
                 setSelectedNode(null);
+
+                if (path.length === 0) {
+                  setWarmPathPlan(null);
+                  setIsGeneratingPlan(true);
+                  setGapAnalysis(null);
+                  setIsGeneratingGap(false);
+
+                  const existingConnections = graphData.nodes
+                    .filter(node => node.kind === 'person')
+                    .map(node => node.name)
+                    .slice(0, 6);
+
+                  generateWarmPathPlanFn({
+                    data: {
+                      companyName: n.name,
+                      userProfile: {
+                        name: 'Ahmad Kamal',
+                        university: 'University of Malaya',
+                        skills: ['Machine Learning', 'React', 'Python'],
+                      },
+                      existingConnections,
+                    },
+                  })
+                    .then(result => {
+                      setWarmPathPlan(result.plan);
+                    })
+                    .catch(e => {
+                      console.error('Warm path plan failed:', e);
+                    })
+                    .finally(() => {
+                      setIsGeneratingPlan(false);
+                    });
+                } else {
+                  setWarmPathPlan(null);
+                  setIsGeneratingPlan(false);
+                  setGapAnalysis(null);
+                  setIsGeneratingGap(true);
+
+                  const pathContactNames = path
+                    .map(id => graphData.nodes.find(node => node.id === id)?.name)
+                    .filter((name): name is string => Boolean(name));
+
+                  generateGapAnalysisFn({
+                    data: {
+                      companyName: n.name,
+                      userProfile: {
+                        name: 'Ahmad Kamal',
+                        university: 'University of Malaya',
+                        skills: ['Machine Learning', 'React', 'Python'],
+                        targetRole: 'Software Engineer',
+                      },
+                      pathContactNames,
+                    },
+                  })
+                    .then(result => {
+                      setGapAnalysis(result.analysis);
+                    })
+                    .catch(e => {
+                      console.error('Gap analysis failed:', e);
+                    })
+                    .finally(() => {
+                      setIsGeneratingGap(false);
+                    });
+                }
               } else if (n.kind === 'person') {
                 setSelectedNode(n);
                 setActivePath([]);
@@ -196,6 +269,11 @@ export function MainCanvas() {
             onBackgroundClick={() => {
               setActivePath([]);
               setSelectedNode(null);
+              setSelectedCompany(null);
+              setWarmPathPlan(null);
+              setIsGeneratingPlan(false);
+              setGapAnalysis(null);
+              setIsGeneratingGap(false);
             }}
           />
           </Suspense>
@@ -207,6 +285,8 @@ export function MainCanvas() {
       <NodeContextPanel />
       <ActionQueuePanel />
       <LegendPanel />
+      <GapAnalysisPanel />
+      <WarmPathPlanPanel />
     </main>
   );
 }
