@@ -1,9 +1,13 @@
-export type NodeKind = 'user' | 'person' | 'company' | 'skill';
+export type NodeKind = 'user' | 'person' | 'company' | 'skill' | 'community'
 
 export interface GraphNode {
-  id: string;
-  name: string;
-  kind: NodeKind;
-  sub?: string;
-  warmness?: number;
+  id: string
+  name: string
+  kind: NodeKind
+  sub?: string
+  warmness?: number
+  company?: string
+  university?: string
+  isOnWarmPath?: boolean
+  val?: number
 }
