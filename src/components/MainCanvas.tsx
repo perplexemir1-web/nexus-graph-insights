@@ -24,6 +24,7 @@ export function MainCanvas() {
     setIsGeneratingPlan,
     setGapAnalysis,
     setIsGeneratingGap,
+    setNoPathFound,
   } = useGraphState();
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
@@ -192,6 +193,7 @@ export function MainCanvas() {
                 setSelectedNode(null);
                 const path = findWarmPath(graphData, DEMO_USER_ID, n.id);
                 setActivePath(path);
+                setNoPathFound(path.length === 0);
                 setGapAnalysis(null);
                 setIsGeneratingGap(false);
                 setWarmPathPlan(null);
@@ -199,6 +201,7 @@ export function MainCanvas() {
               } else if (n.kind === 'person') {
                 setSelectedNode(n);
                 setActivePath([]);
+                setNoPathFound(false);
               } else {
                 setSelectedNode(n);
                 setActivePath([]);
@@ -206,6 +209,7 @@ export function MainCanvas() {
             }}
             onBackgroundClick={() => {
               setActivePath([]);
+              setNoPathFound(false);
               setSelectedNode(null);
               setSelectedCompany(null);
               setWarmPathPlan(null);

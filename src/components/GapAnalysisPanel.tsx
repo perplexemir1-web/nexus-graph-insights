@@ -2,12 +2,12 @@ import { useGraphState } from '@/hooks/useGraphState'
 import { TypingText } from './TypingText'
 
 export function GapAnalysisPanel() {
-  const { selectedCompany, activePath, gapAnalysis, isGeneratingGap, enabledAgents } = useGraphState()
+  const { selectedCompany, gapAnalysis, isGeneratingGap, enabledAgents, noPathFound } = useGraphState()
 
   if (!selectedCompany) return null
 
-  if (!enabledAgents['Warmness scorer']) {
-    if (activePath.length === 0) return null
+  if (!enabledAgents['Gap Analyser']) {
+    if (noPathFound) return null
     return (
       <div style={{
         position: 'absolute',
@@ -37,7 +37,7 @@ export function GapAnalysisPanel() {
         }}>
           Enable{' '}
           <span style={{ color: '#F4A742', fontWeight: 500 }}>
-            Warmness Scorer
+            Gap Analyser
           </span>
           {' '}in the sidebar to get a personalised profile
           fit analysis for {selectedCompany.name}.
@@ -46,7 +46,7 @@ export function GapAnalysisPanel() {
     )
   }
 
-  if (activePath.length === 0) return null
+  if (noPathFound) return null
 
   return (
     <div style={{

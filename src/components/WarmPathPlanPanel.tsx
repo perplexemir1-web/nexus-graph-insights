@@ -8,15 +8,17 @@ export function WarmPathPlanPanel() {
     selectedCompany,
     warmPathPlan,
     isGeneratingPlan,
-    activePath,
+    noPathFound,
     graphData,
     setWarmPathPlan,
     setIsGeneratingPlan,
+    enabledAgents,
   } = useGraphState()
 
   useEffect(() => {
     if (!selectedCompany) return
-    if (activePath.length > 0) return
+    if (!noPathFound) return
+    if (!enabledAgents['Cold → Warm']) return
     if (warmPathPlan || isGeneratingPlan) return
 
     const existingConnections = graphData?.nodes
@@ -39,10 +41,51 @@ export function WarmPathPlanPanel() {
       .then(result => setWarmPathPlan(result.plan))
       .catch(e => console.error('Warm path error:', e))
       .finally(() => setIsGeneratingPlan(false))
-  }, [selectedCompany, activePath])
+  }, [selectedCompany, noPathFound, enabledAgents])
 
   if (!selectedCompany) return null
-  if (activePath.length > 0) return null
+  if (!noPathFound) return null
+
+  if (!enabledAgents['Cold → Warm']) {
+    return (
+      <div style={{
+        position: 'absolute',
+        top: 58,
+        right: 14,
+        width: 220,
+        background: 'rgba(16, 16, 22, 0.96)',
+        border: '0.5px solid rgba(255,255,255,0.07)',
+        borderRadius: 12,
+        padding: '14px',
+        zIndex: 30,
+      }}>
+        <div style={{
+          fontSize: 10,
+          fontWeight: 500,
+          color: 'rgba(255,255,255,0.20)',
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+          marginBottom: 8,
+        }}>
+          No Warm Path
+        </div>
+        <div style={{
+          fontSize: 11,
+          color: 'rgba(255,255,255,0.25)',
+          lineHeight: 1.6,
+        }}>
+          Enable{' '}
+          <span style={{ color: '#F4A742', fontWeight: 500 }}>
+            Cold → Warm
+          </span>
+          {' '}in the sidebar to get a personalised 30-day
+          plan for building connections into{' '}
+          {selectedCompany.name}.
+        </div>
+      </div>
+    )
+  }
+
   if (!warmPathPlan && !isGeneratingPlan) return null
 
   return (

@@ -1,11 +1,12 @@
-import { Route, Flame, Send, Crown, Building2, Users, Code2, Globe, Plus } from 'lucide-react';
+import { Route, Flame, Send, Crown, Zap, Building2, Users, Code2, Globe, Plus } from 'lucide-react';
 import { useGraphState } from '@/hooks/useGraphState';
 import { ToggleSwitch } from './ToggleSwitch';
-import { generateGapAnalysisFn } from '@/lib/outreach';
+import { generateGapAnalysisFn, generateWarmPathPlanFn } from '@/lib/outreach';
 
 const agents = [
   { key: 'Pathfinder', icon: Route, badge: 'live' },
-  { key: 'Warmness scorer', icon: Flame },
+  { key: 'Gap Analyser', icon: Flame },
+  { key: 'Cold → Warm', icon: Zap },
   { key: 'Outreach writer', icon: Send },
   { key: 'Strategy agent', icon: Crown },
 ];
@@ -33,6 +34,8 @@ export function Sidebar() {
     enabledAgents,
     toggleAgent,
     selectedCompany,
+    noPathFound,
+    graphData,
     setGapAnalysis,
     setIsGeneratingGap,
     setWarmPathPlan,
@@ -64,7 +67,7 @@ export function Sidebar() {
                 toggleAgent(a.key);
 
                 if (!isCurrentlyEnabled) {
-                  if (a.key === 'Warmness scorer' && selectedCompany) {
+                  if (a.key === 'Gap Analyser' && selectedCompany) {
                     setGapAnalysis(null);
                     setIsGeneratingGap(true);
                     generateGapAnalysisFn({
@@ -82,6 +85,33 @@ export function Sidebar() {
                       .then(result => setGapAnalysis(result.analysis))
                       .catch(e => console.error('Gap analysis error:', e))
                       .finally(() => setIsGeneratingGap(false));
+                  }
+
+                  if (a.key === 'Cold → Warm' && selectedCompany) {
+                    if (noPathFound) {
+                      const existingConnections = graphData?.nodes
+                        .filter(n => n.kind === 'person')
+                        .map(n => n.name)
+                        .slice(0, 6) ?? []
+
+                      setWarmPathPlan(null)
+                      setIsGeneratingPlan(true)
+
+                      generateWarmPathPlanFn({
+                        data: {
+                          companyName: selectedCompany.name,
+                          userProfile: {
+                            name: 'Ahmad Kamal',
+                            university: 'University of Malaya',
+                            skills: ['Machine Learning', 'React', 'Python'],
+                          },
+                          existingConnections,
+                        },
+                      })
+                        .then(result => setWarmPathPlan(result.plan))
+                        .catch(e => console.error('Cold→Warm error:', e))
+                        .finally(() => setIsGeneratingPlan(false))
+                    }
                   }
 
                   if (a.key === 'Strategy agent') {
@@ -114,7 +144,7 @@ export function Sidebar() {
                   const isCurrentlyEnabled = enabled;
                   toggleAgent(a.key);
                   if (!isCurrentlyEnabled) {
-                    if (a.key === 'Warmness scorer' && selectedCompany) {
+                    if (a.key === 'Gap Analyser' && selectedCompany) {
                       setGapAnalysis(null);
                       setIsGeneratingGap(true);
                       generateGapAnalysisFn({
@@ -132,6 +162,32 @@ export function Sidebar() {
                         .then(result => setGapAnalysis(result.analysis))
                         .catch(e => console.error('Gap analysis error:', e))
                         .finally(() => setIsGeneratingGap(false));
+                    }
+                    if (a.key === 'Cold → Warm' && selectedCompany) {
+                      if (noPathFound) {
+                        const existingConnections = graphData?.nodes
+                          .filter(n => n.kind === 'person')
+                          .map(n => n.name)
+                          .slice(0, 6) ?? []
+
+                        setWarmPathPlan(null)
+                        setIsGeneratingPlan(true)
+
+                        generateWarmPathPlanFn({
+                          data: {
+                            companyName: selectedCompany.name,
+                            userProfile: {
+                              name: 'Ahmad Kamal',
+                              university: 'University of Malaya',
+                              skills: ['Machine Learning', 'React', 'Python'],
+                            },
+                            existingConnections,
+                          },
+                        })
+                          .then(result => setWarmPathPlan(result.plan))
+                          .catch(e => console.error('Cold→Warm error:', e))
+                          .finally(() => setIsGeneratingPlan(false))
+                      }
                     }
                     if (a.key === 'Strategy agent') {
                       window.dispatchEvent(new CustomEvent('nexus:run-strategy-agent'));
