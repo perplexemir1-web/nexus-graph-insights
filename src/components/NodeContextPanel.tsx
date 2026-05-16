@@ -1,12 +1,34 @@
 import { Mail, Coffee, GitPullRequest } from 'lucide-react';
 import { useGraphState } from '@/hooks/useGraphState';
 import { useOutreach } from '@/hooks/useOutreach';
+import { mockGraphData } from '@/data/mockGraphData';
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map(part => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 export function NodeContextPanel() {
-  const { selectedNode } = useGraphState();
+  const { selectedNode, activePath } = useGraphState();
   const { setOpen } = useOutreach();
   if (!selectedNode) return null;
-  const warm = selectedNode.warmness ?? 78;
+
+  const warm = selectedNode.warmness ?? 0;
+  const sharedSchool = selectedNode.university ?? 'Unknown';
+
+  const mutualVia = (() => {
+    const viaId = activePath.find(
+      id => id !== selectedNode.id && mockGraphData.nodes.find(n => n.id === id)?.kind === 'person',
+    );
+    if (!viaId) return 'Direct connection';
+    return mockGraphData.nodes.find(n => n.id === viaId)?.name ?? 'Direct connection';
+  })();
+
+  const hopsAway = activePath.length > 0 ? String(activePath.length - 1) : '—';
 
   return (
     <div style={{
@@ -19,7 +41,7 @@ export function NodeContextPanel() {
           width: 32, height: 32, borderRadius: '50%', background: 'rgba(83,74,183,0.28)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 10, fontWeight: 600, color: '#AFA9EC',
-        }}>PS</div>
+        }}>{initials(selectedNode.name)}</div>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.82)' }}>{selectedNode.name}</div>
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{selectedNode.sub}</div>
@@ -35,9 +57,9 @@ export function NodeContextPanel() {
       </div>
 
       {[
-        ['Shared school', 'UM · CS'],
-        ['Mutual via', 'James T.'],
-        ['Hops away', '2'],
+        ['Shared school', sharedSchool],
+        ['Mutual via', mutualVia],
+        ['Hops away', hopsAway],
         ['Response rate', '~68%'],
       ].map(([k, v]) => (
         <div key={k} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>

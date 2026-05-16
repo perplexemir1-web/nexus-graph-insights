@@ -5,6 +5,8 @@ import type { MockGraphData } from '@/data/mockGraphData';
 interface GraphStateCtx {
   selectedNode: GraphNode | null;
   setSelectedNode: (n: GraphNode | null) => void;
+  activePath: string[];
+  setActivePath: (path: string[]) => void;
   graphData: MockGraphData | null;
   loadGraphData: (data: MockGraphData) => void;
   activeFilters: Record<string, boolean>;
@@ -29,6 +31,7 @@ const defaultNode: GraphNode = {
 
 export function GraphStateProvider({ children }: { children: ReactNode }) {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(defaultNode);
+  const [activePath, setActivePath] = useState<string[]>([]);
   const [graphData, setGraphData] = useState<MockGraphData | null>(null);
   const [activeFilters, setFilters] = useState<Record<string, boolean>>({
     Companies: true, Alumni: true, Skills: false, Community: false,
@@ -46,7 +49,7 @@ export function GraphStateProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider value={{
-      selectedNode, setSelectedNode, graphData, loadGraphData,
+      selectedNode, setSelectedNode, activePath, setActivePath, graphData, loadGraphData,
       activeFilters, toggleFilter, activeAgent, setActiveAgent,
       activeToolbar, setActiveToolbar, highlightedCompany, setHighlightedCompany,
     }}>

@@ -2,6 +2,8 @@ import { useRef, useState, useMemo, useEffect } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import type { GraphNode } from '@/types/graph.types';
 import { useGraphState } from '@/hooks/useGraphState';
+import { findWarmPath } from '@/utils/pathfinding';
+import { DEMO_USER_ID } from '@/data/mockGraphData';
 import { CanvasToolbar } from './CanvasToolbar';
 import { GraphPlaceholder } from './GraphPlaceholder';
 import { NodeContextPanel } from './NodeContextPanel';
@@ -9,7 +11,13 @@ import { ActionQueuePanel } from './ActionQueuePanel';
 import { LegendPanel } from './LegendPanel';
 
 export function MainCanvas() {
-  const { graphData, setSelectedNode } = useGraphState();
+  const {
+    graphData,
+    selectedNode,
+    setSelectedNode,
+    activePath,
+    setActivePath,
+  } = useGraphState();
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
@@ -37,10 +45,6 @@ export function MainCanvas() {
     };
   }, [graphData]);
 
-  console.log('fgData nodes:', fgData.nodes.length);
-  console.log('fgData links:', fgData.links.length);
-  console.log('sample links:', fgData.links.slice(0, 3));
-
   return (
     <main
       style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#08080d' }}
@@ -57,7 +61,15 @@ export function MainCanvas() {
             cooldownTicks={120}
             nodeCanvasObject={(node: any, ctx, globalScale) => {
               const n = node as GraphNode;
-              const radius = n.val ?? 8;
+              const isOnPath = activePath.includes(n.id);
+              const isSelected = selectedNode?.id === n.id;
+              const hasActivePath = activePath.length > 0;
+
+              // Dim nodes not on path when a path is active
+              const dimmed = hasActivePath && !isOnPath;
+
+              const baseRadius = n.val ?? 8;
+              const radius = isOnPath ? baseRadius + 3 : baseRadius;
 
               const colorMap: Record<string, string> = {
                 user:      '#F4A742',
@@ -66,21 +78,61 @@ export function MainCanvas() {
                 skill:     '#7F77DD',
                 community: '#D85A30',
               };
-              const color = colorMap[n.kind] ?? '#888';
+              const baseColor = colorMap[n.kind] ?? '#888';
 
+              // Draw outer glow ring for path nodes
+              if (isOnPath) {
+                ctx.beginPath();
+                ctx.arc(node.x!, node.y!, radius + 4, 0, 2 * Math.PI);
+                ctx.fillStyle = n.kind === 'company'
+                  ? 'rgba(29,158,117,0.20)'
+                  : 'rgba(244,167,66,0.18)';
+                ctx.fill();
+              }
+
+              // Draw main circle
               ctx.beginPath();
               ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI);
-              ctx.fillStyle = color;
+              ctx.fillStyle = dimmed
+                ? 'rgba(255,255,255,0.08)'
+                : baseColor;
+              ctx.globalAlpha = dimmed ? 0.3 : 1.0;
               ctx.fill();
-              ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-              ctx.lineWidth = 0.5;
+              ctx.globalAlpha = 1.0;
+              ctx.strokeStyle = isOnPath
+                ? '#F4A742'
+                : isSelected
+                  ? 'rgba(255,255,255,0.6)'
+                  : 'rgba(255,255,255,0.12)';
+              ctx.lineWidth = isOnPath ? 1.5 : 0.5;
               ctx.stroke();
 
-              if (globalScale > 0.6) {
-                ctx.font = `${Math.max(3, 10 / globalScale)}px Inter, sans-serif`;
-                ctx.fillStyle = 'rgba(255,255,255,0.65)';
+              // Draw warmness badge above path person nodes
+              if (isOnPath && n.kind === 'person' && n.warmness) {
+                const badgeY = node.y! - radius - 10;
+                ctx.beginPath();
+                ctx.arc(node.x!, badgeY, 8, 0, 2 * Math.PI);
+                ctx.fillStyle = '#F4A742';
+                ctx.fill();
+                ctx.font = `bold ${Math.max(5, 8 / globalScale)}px Inter`;
+                ctx.fillStyle = '#1a0e00';
                 ctx.textAlign = 'center';
-                ctx.fillText(n.name, node.x!, node.y! + radius + 5);
+                ctx.textBaseline = 'middle';
+                ctx.fillText(String(n.warmness), node.x!, badgeY);
+              }
+
+              // Draw label
+              if (globalScale > 0.5 || isOnPath) {
+                const fontSize = Math.max(3, 10 / globalScale);
+                ctx.font = `${isOnPath ? 'bold ' : ''}${fontSize}px Inter, sans-serif`;
+                ctx.fillStyle = dimmed
+                  ? 'rgba(255,255,255,0.20)'
+                  : isOnPath
+                    ? 'rgba(255,255,255,0.95)'
+                    : 'rgba(255,255,255,0.65)';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillText(n.name, node.x!, node.y! + radius + 3);
               }
             }}
             nodePointerAreaPaint={(node: any, color, ctx) => {
@@ -93,7 +145,16 @@ export function MainCanvas() {
             linkDirectionalParticles={0}
             linkCurvature={0.1}
             linkColor={(link: any) => {
-              if (link.warm) return 'rgba(244, 167, 66, 0.85)';
+              const src = typeof link.source === 'object' ? link.source.id : link.source;
+              const tgt = typeof link.target === 'object' ? link.target.id : link.target;
+              const isOnPath = activePath.length > 0
+                && activePath.includes(src)
+                && activePath.includes(tgt);
+
+              if (isOnPath) return 'rgba(244, 167, 66, 0.90)';
+
+              if (activePath.length > 0) return 'rgba(255,255,255,0.03)';
+
               const typeColors: Record<string, string> = {
                 worked_at: 'rgba(29, 158, 117, 0.35)',
                 knows:     'rgba(55, 138, 221, 0.30)',
@@ -103,12 +164,37 @@ export function MainCanvas() {
               return typeColors[link.edgeType] ?? 'rgba(255,255,255,0.15)';
             }}
             linkWidth={(link: any) => {
-              if (link.warm) return 2.5;
+              const src = typeof link.source === 'object' ? link.source.id : link.source;
+              const tgt = typeof link.target === 'object' ? link.target.id : link.target;
+              const isOnPath = activePath.length > 0
+                && activePath.includes(src)
+                && activePath.includes(tgt);
+
+              if (isOnPath) return 3;
+              if (activePath.length > 0) return 0.2;
               if (link.edgeType === 'worked_at') return 1.2;
-              if (link.edgeType === 'knows') return 1.0;
-              return 0.6;
+              return 0.8;
             }}
-            onNodeClick={(node: any) => setSelectedNode(node as GraphNode)}
+            onNodeClick={(node: any) => {
+              const n = node as GraphNode;
+
+              if (n.kind === 'company') {
+                if (!graphData) return;
+                const path = findWarmPath(graphData, DEMO_USER_ID, n.id);
+                setActivePath(path);
+                setSelectedNode(null);
+              } else if (n.kind === 'person') {
+                setSelectedNode(n);
+                setActivePath([]);
+              } else {
+                setSelectedNode(n);
+                setActivePath([]);
+              }
+            }}
+            onBackgroundClick={() => {
+              setActivePath([]);
+              setSelectedNode(null);
+            }}
           />
         </div>
       ) : (
