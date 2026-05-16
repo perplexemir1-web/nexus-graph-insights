@@ -50,6 +50,8 @@ interface GraphStateCtx {
   setWarmPathPlan: (plan: WarmPathPlan | null) => void;
   isGeneratingPlan: boolean;
   setIsGeneratingPlan: (v: boolean) => void;
+  enabledAgents: Record<string, boolean>;
+  toggleAgent: (key: string) => void;
 }
 
 const Ctx = createContext<GraphStateCtx | null>(null);
@@ -77,6 +79,17 @@ export function GraphStateProvider({ children }: { children: ReactNode }) {
   const [isGeneratingGap, setIsGeneratingGap] = useState(false);
   const [warmPathPlan, setWarmPathPlan] = useState<WarmPathPlan | null>(null);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+  const [enabledAgents, setEnabledAgents] = useState<Record<string, boolean>>({
+    'Pathfinder': true,
+    'Warmness scorer': false,
+    'Outreach writer': false,
+    'Strategy agent': false,
+  });
+
+  const toggleAgent = (key: string) => {
+    if (key === 'Pathfinder') return;
+    setEnabledAgents(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const toggleFilter = (k: string) => setFilters(f => ({ ...f, [k]: !f[k] }));
   const loadGraphData = (data: MockGraphData) => {
@@ -93,6 +106,7 @@ export function GraphStateProvider({ children }: { children: ReactNode }) {
       selectedCompany, setSelectedCompany, gapAnalysis, setGapAnalysis,
       isGeneratingGap, setIsGeneratingGap, warmPathPlan, setWarmPathPlan,
       isGeneratingPlan, setIsGeneratingPlan,
+      enabledAgents, toggleAgent,
     }}>
       {children}
     </Ctx.Provider>

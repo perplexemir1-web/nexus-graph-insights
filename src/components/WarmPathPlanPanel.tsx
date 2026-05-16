@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { useGraphState } from '@/hooks/useGraphState'
 import { TypingText } from './TypingText'
+import { generateWarmPathPlanFn } from '@/lib/outreach'
 
 export function WarmPathPlanPanel() {
   const {
@@ -7,7 +9,37 @@ export function WarmPathPlanPanel() {
     warmPathPlan,
     isGeneratingPlan,
     activePath,
+    graphData,
+    setWarmPathPlan,
+    setIsGeneratingPlan,
   } = useGraphState()
+
+  useEffect(() => {
+    if (!selectedCompany) return
+    if (activePath.length > 0) return
+    if (warmPathPlan || isGeneratingPlan) return
+
+    const existingConnections = graphData?.nodes
+      .filter(n => n.kind === 'person')
+      .map(n => n.name)
+      .slice(0, 6) ?? []
+
+    setIsGeneratingPlan(true)
+    generateWarmPathPlanFn({
+      data: {
+        companyName: selectedCompany.name,
+        userProfile: {
+          name: 'Ahmad Kamal',
+          university: 'University of Malaya',
+          skills: ['Machine Learning', 'React', 'Python'],
+        },
+        existingConnections,
+      },
+    })
+      .then(result => setWarmPathPlan(result.plan))
+      .catch(e => console.error('Warm path error:', e))
+      .finally(() => setIsGeneratingPlan(false))
+  }, [selectedCompany, activePath])
 
   if (!selectedCompany) return null
   if (activePath.length > 0) return null

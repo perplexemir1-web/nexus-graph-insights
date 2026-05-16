@@ -2,9 +2,50 @@ import { useGraphState } from '@/hooks/useGraphState'
 import { TypingText } from './TypingText'
 
 export function GapAnalysisPanel() {
-  const { selectedCompany, activePath, gapAnalysis, isGeneratingGap } = useGraphState()
+  const { selectedCompany, activePath, gapAnalysis, isGeneratingGap, enabledAgents } = useGraphState()
 
   if (!selectedCompany) return null
+
+  if (!enabledAgents['Warmness scorer']) {
+    if (activePath.length === 0) return null
+    return (
+      <div style={{
+        position: 'absolute',
+        top: 58,
+        right: 14,
+        width: 220,
+        background: 'rgba(16, 16, 22, 0.96)',
+        border: '0.5px solid rgba(255,255,255,0.07)',
+        borderRadius: 12,
+        padding: '14px',
+        zIndex: 30,
+      }}>
+        <div style={{
+          fontSize: 10,
+          fontWeight: 500,
+          color: 'rgba(255,255,255,0.20)',
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+          marginBottom: 8,
+        }}>
+          Profile Fit
+        </div>
+        <div style={{
+          fontSize: 11,
+          color: 'rgba(255,255,255,0.25)',
+          lineHeight: 1.6,
+        }}>
+          Enable{' '}
+          <span style={{ color: '#F4A742', fontWeight: 500 }}>
+            Warmness Scorer
+          </span>
+          {' '}in the sidebar to get a personalised profile
+          fit analysis for {selectedCompany.name}.
+        </div>
+      </div>
+    )
+  }
+
   if (activePath.length === 0) return null
 
   return (

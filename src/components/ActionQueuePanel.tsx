@@ -1,5 +1,6 @@
 import { RefreshCw } from 'lucide-react';
 import { useActionQueue } from '@/hooks/useActionQueue';
+import { useGraphState } from '@/hooks/useGraphState';
 
 function ActionText({ action, boldName }: { action: string; boldName: string }) {
   if (!action.includes(boldName)) {
@@ -17,6 +18,7 @@ function ActionText({ action, boldName }: { action: string; boldName: string }) 
 
 export function ActionQueuePanel() {
   const { actions, isLoading } = useActionQueue();
+  const { enabledAgents } = useGraphState();
 
   return (
     <div style={{
@@ -53,6 +55,22 @@ export function ActionQueuePanel() {
               }} />
             </div>
           ))
+        : actions.length === 0 && !isLoading && !enabledAgents['Strategy agent']
+          ? (
+            <div style={{
+              fontSize: 11,
+              color: 'rgba(255,255,255,0.22)',
+              lineHeight: 1.6,
+              padding: '2px 0',
+            }}>
+              Enable{' '}
+              <span style={{ color: '#F4A742', fontWeight: 500 }}>
+                Strategy Agent
+              </span>
+              {' '}in the sidebar to generate your personalised
+              daily networking moves.
+            </div>
+          )
         : actions.map((action, i) => (
             <div key={action.priority} style={{
               display: 'flex', alignItems: 'flex-start', gap: 8,

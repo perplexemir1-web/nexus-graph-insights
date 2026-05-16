@@ -2,14 +2,6 @@ import { useState, useEffect } from 'react'
 import { generateActionsFn } from '@/lib/outreach'
 import { useGraphState } from '@/hooks/useGraphState'
 
-const AI_ACTIONS_ENABLED = false
-
-const DEFAULT_ACTIONS = [
-  { priority: 1, boldName: 'James Tan', action: 'Message James Tan — UM alum, direct warm path to Google' },
-  { priority: 2, boldName: 'AI/ML Malaysia', action: 'Join AI/ML Malaysia — bridges you to 3 Google engineers' },
-  { priority: 3, boldName: 'Priya Sharma', action: 'Connect with Priya Sharma — highest warmness in your network' },
-]
-
 export type QueueAction = {
   priority: number
   boldName: string
@@ -17,16 +9,14 @@ export type QueueAction = {
 }
 
 export function useActionQueue() {
-  const { graphData } = useGraphState()
+  const { graphData, enabledAgents } = useGraphState()
   const [actions, setActions] = useState<QueueAction[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     if (!graphData) return
-    if (actions.length > 0) return // already loaded
-
-    if (!AI_ACTIONS_ENABLED) {
-      setActions(DEFAULT_ACTIONS)
+    if (!enabledAgents['Strategy agent']) {
+      setActions([])
       return
     }
 
@@ -71,6 +61,15 @@ export function useActionQueue() {
       .finally(() => {
         setIsLoading(false)
       })
+  }, [graphData, enabledAgents['Strategy agent']])
+
+  useEffect(() => {
+    const handler = () => {
+      if (!graphData) return
+      setActions([])
+    }
+    window.addEventListener('nexus:run-strategy-agent', handler)
+    return () => window.removeEventListener('nexus:run-strategy-agent', handler)
   }, [graphData])
 
   return { actions, isLoading }

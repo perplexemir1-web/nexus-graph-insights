@@ -1,5 +1,7 @@
 import { Route, Flame, Send, Crown, Building2, Users, Code2, Globe, Plus } from 'lucide-react';
 import { useGraphState } from '@/hooks/useGraphState';
+import { ToggleSwitch } from './ToggleSwitch';
+import { generateGapAnalysisFn } from '@/lib/outreach';
 
 const agents = [
   { key: 'Pathfinder', icon: Route, badge: 'live' },
@@ -22,7 +24,20 @@ const companies = [
 ];
 
 export function Sidebar() {
-  const { activeAgent, setActiveAgent, activeFilters, toggleFilter, highlightedCompany, setHighlightedCompany } = useGraphState();
+  const {
+    setActiveAgent,
+    activeFilters,
+    toggleFilter,
+    highlightedCompany,
+    setHighlightedCompany,
+    enabledAgents,
+    toggleAgent,
+    selectedCompany,
+    setGapAnalysis,
+    setIsGeneratingGap,
+    setWarmPathPlan,
+    setIsGeneratingPlan,
+  } = useGraphState();
 
   return (
     <aside className="nx-scroll" style={{
@@ -36,23 +51,94 @@ export function Sidebar() {
         <div style={sectionLabel}>AI Agents</div>
         {agents.map(a => {
           const Icon = a.icon;
-          const active = activeAgent === a.key;
+          const isPathfinder = a.key === 'Pathfinder';
+          const enabled = enabledAgents[a.key] ?? false;
+
           return (
-            <div key={a.key} onClick={() => setActiveAgent(a.key)}
-              className={active ? '' : 'nx-hover-bg'}
+            <div
+              key={a.key}
+              onClick={() => {
+                if (a.key === 'Pathfinder') return;
+                const isCurrentlyEnabled = enabledAgents[a.key];
+                setActiveAgent(a.key);
+                toggleAgent(a.key);
+
+                if (!isCurrentlyEnabled) {
+                  if (a.key === 'Warmness scorer' && selectedCompany) {
+                    setGapAnalysis(null);
+                    setIsGeneratingGap(true);
+                    generateGapAnalysisFn({
+                      data: {
+                        companyName: selectedCompany.name,
+                        userProfile: {
+                          name: 'Ahmad Kamal',
+                          university: 'University of Malaya',
+                          skills: ['Machine Learning', 'React', 'Python'],
+                          targetRole: 'Software Engineer',
+                        },
+                        pathContactNames: [],
+                      },
+                    })
+                      .then(result => setGapAnalysis(result.analysis))
+                      .catch(e => console.error('Gap analysis error:', e))
+                      .finally(() => setIsGeneratingGap(false));
+                  }
+
+                  if (a.key === 'Strategy agent') {
+                    window.dispatchEvent(new CustomEvent('nexus:run-strategy-agent'));
+                  }
+                }
+              }}
+              className={enabled ? '' : 'nx-hover-bg'}
               style={{
                 ...itemBase,
-                background: active ? 'rgba(244,167,66,0.10)' : 'transparent',
-                color: active ? '#F4A742' : 'rgba(255,255,255,0.45)',
-              }}>
-              <Icon size={16} strokeWidth={1.7} />
-              <span>{a.key}</span>
-              {a.badge && (
-                <span style={{
-                  marginLeft: 'auto', fontSize: 9, padding: '2px 7px', borderRadius: 10,
-                  background: 'rgba(244,167,66,0.15)', color: '#F4A742',
-                }}>{a.badge}</span>
-              )}
+                background: enabled
+                  ? 'rgba(244,167,66,0.08)'
+                  : 'transparent',
+                color: enabled
+                  ? 'rgba(255,255,255,0.80)'
+                  : 'rgba(255,255,255,0.40)',
+              }}
+            >
+              <Icon
+                size={16}
+                strokeWidth={1.7}
+                color={enabled ? '#F4A742' : 'rgba(255,255,255,0.35)'}
+              />
+              <span style={{ flex: 1, fontSize: 12 }}>{a.key}</span>
+              <ToggleSwitch
+                enabled={enabled}
+                locked={isPathfinder}
+                onChange={() => {
+                  if (isPathfinder) return;
+                  const isCurrentlyEnabled = enabled;
+                  toggleAgent(a.key);
+                  if (!isCurrentlyEnabled) {
+                    if (a.key === 'Warmness scorer' && selectedCompany) {
+                      setGapAnalysis(null);
+                      setIsGeneratingGap(true);
+                      generateGapAnalysisFn({
+                        data: {
+                          companyName: selectedCompany.name,
+                          userProfile: {
+                            name: 'Ahmad Kamal',
+                            university: 'University of Malaya',
+                            skills: ['Machine Learning', 'React', 'Python'],
+                            targetRole: 'Software Engineer',
+                          },
+                          pathContactNames: [],
+                        },
+                      })
+                        .then(result => setGapAnalysis(result.analysis))
+                        .catch(e => console.error('Gap analysis error:', e))
+                        .finally(() => setIsGeneratingGap(false));
+                    }
+                    if (a.key === 'Strategy agent') {
+                      window.dispatchEvent(new CustomEvent('nexus:run-strategy-agent'));
+                    }
+                  }
+                }}
+              />
             </div>
           );
         })}
