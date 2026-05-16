@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 import type { GraphNode } from '@/types/graph.types'
+import { generateOutreachFn } from '@/lib/outreach'
+//import { generateOutreachFn } from '@/server/outreach'
 
 interface OutreachCtx {
   open: boolean
@@ -34,11 +36,14 @@ export function OutreachProvider({ children }: { children: ReactNode }) {
     setIsGenerating(true)
     setMessage('')
     try {
-      const res = await fetch('/api/outreach', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          targetNode: node,
+      console.log('Calling generateOutreachFn for:', node.name)
+      const result = await generateOutreachFn({
+        data: {
+          targetNode: {
+            name: node.name,
+            sub: node.sub,
+            university: node.university,
+          },
           msgType: type,
           tone: selectedTone,
           userProfile: {
@@ -48,12 +53,17 @@ export function OutreachProvider({ children }: { children: ReactNode }) {
             skills: ['Machine Learning', 'React', 'Python'],
             targetRole: 'Software Engineer',
           },
-        }),
+        },
       })
-      const data = await res.json()
-      setMessage(data.message ?? 'Failed to generate message.')
-    } catch (e) {
-      setMessage('Something went wrong. Please try again.')
+      setMessage(result.message ?? 'Failed to generate message.')
+    } catch (e: unknown) {
+      const err = e as { message?: string; stack?: string }
+      console.error('OUTREACH ERROR TYPE:', typeof e)
+      console.error('OUTREACH ERROR:', e)
+      console.error('OUTREACH ERROR MESSAGE:', err?.message)
+      console.error('OUTREACH ERROR STACK:', err?.stack)
+      console.error('OUTREACH ERROR JSON:', JSON.stringify(e, null, 2))
+      setMessage('Error: ' + (err?.message ?? JSON.stringify(e)))
     } finally {
       setIsGenerating(false)
     }

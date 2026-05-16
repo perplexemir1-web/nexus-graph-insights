@@ -1,5 +1,6 @@
-import { useRef, useState, useMemo, useEffect } from 'react';
-import ForceGraph2D from 'react-force-graph-2d';
+import { useRef, useState, useMemo, useEffect, lazy, Suspense } from 'react';
+
+const ForceGraph2D = lazy(() => import('react-force-graph-2d'));
 import type { GraphNode } from '@/types/graph.types';
 import { useGraphState } from '@/hooks/useGraphState';
 import { findWarmPath } from '@/utils/pathfinding';
@@ -52,7 +53,8 @@ export function MainCanvas() {
     >
       {graphData ? (
         <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
-          <ForceGraph2D
+          <Suspense fallback={null}>
+            <ForceGraph2D
             width={dimensions.width}
             height={dimensions.height}
             graphData={fgData}
@@ -196,6 +198,7 @@ export function MainCanvas() {
               setSelectedNode(null);
             }}
           />
+          </Suspense>
         </div>
       ) : (
         <GraphPlaceholder />
