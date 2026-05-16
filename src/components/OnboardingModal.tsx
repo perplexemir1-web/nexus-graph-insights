@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Upload, Check, Loader2, Circle } from 'lucide-react';
 import { useOnboarding } from '@/hooks/useOnboarding';
 
@@ -136,30 +136,62 @@ function Step2() {
 }
 
 function Step3() {
-  const steps = [
-    { state: 'done', label: 'Parsing resume and GitHub profile' },
-    { state: 'active', label: 'Mapping university alumni network' },
-    { state: 'pending', label: 'Scoring connection warmness' },
-    { state: 'pending', label: 'Generating referral pathways' },
+  const { step, completeOnboarding } = useOnboarding();
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+
+  const labels = [
+    'Parsing resume and GitHub profile',
+    'Mapping university alumni network',
+    'Scoring connection warmness',
+    'Generating referral pathways',
   ];
+
+  useEffect(() => {
+    if (step !== 3) return;
+
+    setCompletedSteps([]);
+    const timings = [800, 1600, 2400, 3200];
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    timings.forEach((delay, i) => {
+      timers.push(
+        setTimeout(() => {
+          setCompletedSteps(prev => [...prev, i]);
+          if (i === labels.length - 1) {
+            timers.push(setTimeout(() => completeOnboarding(), 600));
+          }
+        }, delay),
+      );
+    });
+
+    return () => timers.forEach(clearTimeout);
+  }, [step, completeOnboarding]);
+
   return (
     <>
       <Title>Building your network graph</Title>
       <Sub>Analysing your background and mapping connections...</Sub>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {steps.map((s, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {s.state === 'done' && <Check size={14} color="#1D9E75" strokeWidth={2.2} />}
-            {s.state === 'active' && <Loader2 size={14} color="#F4A742" strokeWidth={2.2} className="nx-spin" />}
-            {s.state === 'pending' && <Circle size={14} color="rgba(255,255,255,0.15)" strokeWidth={1.5} />}
-            <span style={{
-              fontSize: 12,
-              color: s.state === 'done' ? 'rgba(255,255,255,0.55)' :
-                     s.state === 'active' ? 'rgba(255,255,255,0.80)' :
-                     'rgba(255,255,255,0.25)',
-            }}>{s.label}</span>
-          </div>
-        ))}
+        {labels.map((label, i) => {
+          const state = completedSteps.includes(i)
+            ? 'done'
+            : i === completedSteps.length
+              ? 'active'
+              : 'pending';
+          return (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {state === 'done' && <Check size={14} color="#1D9E75" strokeWidth={2.2} />}
+              {state === 'active' && <Loader2 size={14} color="#F4A742" strokeWidth={2.2} className="nx-spin" />}
+              {state === 'pending' && <Circle size={14} color="rgba(255,255,255,0.15)" strokeWidth={1.5} />}
+              <span style={{
+                fontSize: 12,
+                color: state === 'done' ? 'rgba(255,255,255,0.55)' :
+                       state === 'active' ? 'rgba(255,255,255,0.80)' :
+                       'rgba(255,255,255,0.25)',
+              }}>{label}</span>
+            </div>
+          );
+        })}
       </div>
     </>
   );

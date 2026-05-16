@@ -1,9 +1,12 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 import type { GraphNode } from '@/types/graph.types';
+import type { MockGraphData } from '@/data/mockGraphData';
 
 interface GraphStateCtx {
   selectedNode: GraphNode | null;
   setSelectedNode: (n: GraphNode | null) => void;
+  graphData: MockGraphData | null;
+  loadGraphData: (data: MockGraphData) => void;
   activeFilters: Record<string, boolean>;
   toggleFilter: (k: string) => void;
   activeAgent: string;
@@ -26,6 +29,7 @@ const defaultNode: GraphNode = {
 
 export function GraphStateProvider({ children }: { children: ReactNode }) {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(defaultNode);
+  const [graphData, setGraphData] = useState<MockGraphData | null>(null);
   const [activeFilters, setFilters] = useState<Record<string, boolean>>({
     Companies: true, Alumni: true, Skills: false, Community: false,
   });
@@ -34,12 +38,17 @@ export function GraphStateProvider({ children }: { children: ReactNode }) {
   const [highlightedCompany, setHighlightedCompany] = useState<string | null>(null);
 
   const toggleFilter = (k: string) => setFilters(f => ({ ...f, [k]: !f[k] }));
+  const loadGraphData = (data: MockGraphData) => {
+    setGraphData(data);
+    const priya = data.nodes.find(n => n.id === 'priya');
+    if (priya) setSelectedNode(priya);
+  };
 
   return (
     <Ctx.Provider value={{
-      selectedNode, setSelectedNode, activeFilters, toggleFilter,
-      activeAgent, setActiveAgent, activeToolbar, setActiveToolbar,
-      highlightedCompany, setHighlightedCompany,
+      selectedNode, setSelectedNode, graphData, loadGraphData,
+      activeFilters, toggleFilter, activeAgent, setActiveAgent,
+      activeToolbar, setActiveToolbar, highlightedCompany, setHighlightedCompany,
     }}>
       {children}
     </Ctx.Provider>
