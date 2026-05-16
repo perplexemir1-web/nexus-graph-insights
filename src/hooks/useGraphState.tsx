@@ -7,6 +7,13 @@ export type GapAnalysis = {
   hasSkills: string[]
   missingSkills: string[]
   quickestWin: string
+  summary: string
+  gapResources: Array<{
+    skill: string
+    action: string
+    platform: string
+    url: string
+  }>
 }
 
 export type WarmPathPlan = {

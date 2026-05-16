@@ -143,6 +143,101 @@ export function GapAnalysisPanel() {
             <span style={{ color: '#F4A742' }}>Quickest win: </span>
             {gapAnalysis.quickestWin}
           </div>
+
+          {gapAnalysis.gapResources && gapAnalysis.gapResources.length > 0 && (
+            <>
+              <div style={{
+                height: '0.5px',
+                background: 'rgba(255,255,255,0.06)',
+                margin: '8px 0',
+              }} />
+
+              <div style={{
+                fontSize: 9,
+                color: 'rgba(255,255,255,0.25)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                marginBottom: 6,
+              }}>
+                Close the gap
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {gapAnalysis.gapResources.map((resource, i) => (
+                  <a
+                    key={i}
+                    href={resource.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 2,
+                      padding: '7px 9px',
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '0.5px solid rgba(255,255,255,0.08)',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      transition: 'border-color 0.12s, background 0.12s',
+                    }}
+                    onMouseEnter={e => {
+                      (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.18)'
+                      ;(e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'
+                    }}
+                    onMouseLeave={e => {
+                      (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.08)'
+                      ;(e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)'
+                    }}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}>
+                      <span style={{
+                        fontSize: 10,
+                        color: 'rgba(216,90,48,0.85)',
+                        fontWeight: 500,
+                      }}>
+                        {resource.skill}
+                      </span>
+                      <span style={{
+                        fontSize: 9,
+                        color: 'rgba(255,255,255,0.30)',
+                        background: 'rgba(255,255,255,0.05)',
+                        padding: '1px 5px',
+                        borderRadius: 4,
+                      }}>
+                        {resource.platform}
+                      </span>
+                    </div>
+
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}>
+                      <span style={{
+                        fontSize: 9,
+                        color: '#F4A742',
+                        opacity: 0.7,
+                      }}>
+                        →
+                      </span>
+                      <span style={{
+                        fontSize: 10,
+                        color: 'rgba(255,255,255,0.45)',
+                        lineHeight: 1.4,
+                      }}>
+                        {resource.action}
+                      </span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

@@ -273,9 +273,18 @@ Return ONLY a valid JSON object. No markdown, no backticks. Raw JSON only.
 Format:
 {
   "fitScore": 72,
-  "hasSkills": ["React", "Python"],
-  "missingSkills": ["System Design"],
-  "quickestWin": "One specific action under 15 words."
+  "hasSkills": ["skill 1", "skill 2", "skill 3"],
+  "missingSkills": ["gap 1", "gap 2", "gap 3"],
+  "quickestWin": "One specific actionable thing they can do this week. Max 20 words.",
+  "summary": "One sentence honest assessment. Max 15 words.",
+  "gapResources": [
+    {
+      "skill": "exact name of missing skill from missingSkills array",
+      "action": "specific thing to do, max 8 words",
+      "platform": "Platform Name",
+      "url": "https://real-url.com"
+    }
+  ]
 }
 
 Rules:
@@ -283,7 +292,29 @@ Rules:
 - hasSkills: 2-4 skills they already have relevant to ${data.companyName}
 - missingSkills: 1-3 gaps to close
 - quickestWin must reference a named contact from the warm path if possible
-- Do not use placeholder text`
+- Do not use placeholder text
+- gapResources must have exactly one entry per missing skill
+  (so exactly 3 entries matching the 3 missingSkills)
+- Each resource must map to the exact skill name in missingSkills
+- Use only these platforms and their real URLs:
+    System Design → platform: "NeetCode", url: "https://neetcode.io/roadmap"
+    System Design → platform: "ByteByteGo", url: "https://bytebytego.com"
+    Open Source → platform: "GitHub", url: "https://github.com/explore"
+    Algorithms → platform: "LeetCode", url: "https://leetcode.com"
+    Algorithms → platform: "NeetCode", url: "https://neetcode.io"
+    Machine Learning → platform: "Coursera", url: "https://coursera.org/learn/machine-learning"
+    Deep Learning → platform: "fast.ai", url: "https://fast.ai"
+    Python → platform: "freeCodeCamp", url: "https://freecodecamp.org"
+    React → platform: "docs.react.dev", url: "https://react.dev/learn"
+    Distributed Systems → platform: "MIT OpenCourseWare", url: "https://ocw.mit.edu"
+    DevOps → platform: "roadmap.sh", url: "https://roadmap.sh/devops"
+    Cloud → platform: "AWS Free Tier", url: "https://aws.amazon.com/free"
+    Data Structures → platform: "NeetCode", url: "https://neetcode.io"
+    Communication → platform: "Toastmasters", url: "https://toastmasters.org"
+    Portfolio → platform: "GitHub Pages", url: "https://pages.github.com"
+    default for anything else → platform: "Coursera", url: "https://coursera.org"
+- action field describes what to do on that platform in 8 words max
+  example: "Complete the System Design course" or "Solve 20 medium problems"`
 
     try {
       const result = await model.generateContent(prompt)
@@ -299,10 +330,31 @@ Rules:
 
 function getDefaultGapAnalysis(companyName: string) {
   return {
-    fitScore: 74,
-    hasSkills: ['Machine Learning', 'React', 'Python'],
-    missingSkills: ['System Design', 'Distributed Systems'],
-    quickestWin: `Ask James Tan for a Google referral intro`,
+    fitScore: 68,
+    hasSkills: ['Machine Learning', 'Python', 'CS Fundamentals'],
+    missingSkills: ['System Design', 'Open Source Contributions', 'Distributed Systems'],
+    quickestWin: `Contribute to a public ML repo — engineers at ${companyName} look for this`,
+    summary: `Strong fundamentals, needs practical project experience for ${companyName}`,
+    gapResources: [
+      {
+        skill: 'System Design',
+        action: 'Study the System Design roadmap',
+        platform: 'NeetCode',
+        url: 'https://neetcode.io/roadmap',
+      },
+      {
+        skill: 'Open Source Contributions',
+        action: 'Find a beginner-friendly repo to contribute',
+        platform: 'GitHub',
+        url: 'https://github.com/explore',
+      },
+      {
+        skill: 'Distributed Systems',
+        action: 'Read the free distributed systems course',
+        platform: 'MIT OpenCourseWare',
+        url: 'https://ocw.mit.edu',
+      },
+    ],
   }
 }
 
