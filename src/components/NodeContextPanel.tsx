@@ -17,7 +17,7 @@ export function NodeContextPanel() {
   const { openFor } = useOutreach();
   if (!selectedNode) return null;
 
-  const outreachEnabled = enabledAgents['Outreach writer'];
+  const outreachEnabled = enabledAgents['Outreach Writer'];
 
   const warm = selectedNode.warmness ?? 0;
   const sharedSchool = selectedNode.university ?? 'Unknown';

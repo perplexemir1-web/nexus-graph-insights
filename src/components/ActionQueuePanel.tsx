@@ -55,7 +55,7 @@ export function ActionQueuePanel() {
               }} />
             </div>
           ))
-        : actions.length === 0 && !isLoading && !enabledAgents['Strategy agent']
+        : actions.length === 0 && !isLoading && !enabledAgents['Strategist']
           ? (
             <div style={{
               fontSize: 11,
@@ -65,7 +65,7 @@ export function ActionQueuePanel() {
             }}>
               Enable{' '}
               <span style={{ color: '#F4A742', fontWeight: 500 }}>
-                Strategy Agent
+                Strategist
               </span>
               {' '}in the sidebar to generate your personalised
               daily networking moves.

@@ -7,8 +7,8 @@ const agents = [
   { key: 'Pathfinder', icon: Route, badge: 'live' },
   { key: 'Gap Analyser', icon: Flame },
   { key: 'Cold → Warm', icon: Zap },
-  { key: 'Outreach writer', icon: Send },
-  { key: 'Strategy agent', icon: Crown },
+  { key: 'Outreach Writer', icon: Send },
+  { key: 'Strategist', icon: Crown },
 ];
 
 const filters = [
@@ -114,7 +114,7 @@ export function Sidebar() {
                     }
                   }
 
-                  if (a.key === 'Strategy agent') {
+                  if (a.key === 'Strategist') {
                     window.dispatchEvent(new CustomEvent('nexus:run-strategy-agent'));
                   }
                 }
@@ -189,7 +189,7 @@ export function Sidebar() {
                           .finally(() => setIsGeneratingPlan(false))
                       }
                     }
-                    if (a.key === 'Strategy agent') {
+                    if (a.key === 'Strategist') {
                       window.dispatchEvent(new CustomEvent('nexus:run-strategy-agent'));
                     }
                   }

@@ -15,7 +15,7 @@ export function useActionQueue() {
 
   useEffect(() => {
     if (!graphData) return
-    if (!enabledAgents['Strategy agent']) {
+    if (!enabledAgents['Strategist']) {
       setActions([])
       return
     }
@@ -61,7 +61,7 @@ export function useActionQueue() {
       .finally(() => {
         setIsLoading(false)
       })
-  }, [graphData, enabledAgents['Strategy agent']])
+  }, [graphData, enabledAgents['Strategist']])
 
   useEffect(() => {
     const handler = () => {

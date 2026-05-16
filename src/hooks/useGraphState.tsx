@@ -86,8 +86,8 @@ export function GraphStateProvider({ children }: { children: ReactNode }) {
     'Pathfinder': true,
     'Gap Analyser': false,
     'Cold → Warm': false,
-    'Outreach writer': false,
-    'Strategy agent': false,
+    'Outreach Writer': false,
+    'Strategist': false,
   });
 
   const toggleAgent = (key: string) => {
