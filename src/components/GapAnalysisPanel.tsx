@@ -1,4 +1,5 @@
 import { useGraphState } from '@/hooks/useGraphState'
+import { TypingText } from './TypingText'
 
 export function GapAnalysisPanel() {
   const { selectedCompany, activePath, gapAnalysis, isGeneratingGap } = useGraphState()
@@ -40,15 +41,32 @@ export function GapAnalysisPanel() {
       </div>
 
       {isGeneratingGap && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-          {[85, 60, 75].map((w, i) => (
-            <div key={i} style={{
-              height: 24,
-              width: w + '%',
-              background: 'rgba(255,255,255,0.05)',
-              borderRadius: 5,
-            }} />
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+
+          <div style={{
+            fontSize: 11,
+            color: 'rgba(255,255,255,0.50)',
+            lineHeight: 1.6,
+            marginBottom: 2,
+          }}>
+            <TypingText lines={[
+              'Analysing your profile...',
+              'Comparing skills to requirements...',
+              'Identifying your quickest wins...',
+            ]} />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {[85, 65, 75].map((w, i) => (
+              <div key={i} style={{
+                height: 8,
+                width: w + '%',
+                background: 'rgba(255,255,255,0.06)',
+                borderRadius: 4,
+              }} />
+            ))}
+          </div>
+
         </div>
       )}
 

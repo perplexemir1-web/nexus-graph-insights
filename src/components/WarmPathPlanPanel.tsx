@@ -1,4 +1,5 @@
 import { useGraphState } from '@/hooks/useGraphState'
+import { TypingText } from './TypingText'
 
 export function WarmPathPlanPanel() {
   const {
@@ -47,23 +48,32 @@ export function WarmPathPlanPanel() {
       </div>
 
       {isGeneratingPlan && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-          {[90, 70, 80, 65].map((w, i) => (
-            <div key={i} style={{
-              height: 28,
-              width: w + '%',
-              background: 'rgba(255,255,255,0.05)',
-              borderRadius: 5,
-            }} />
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+
           <div style={{
-            fontSize: 10,
-            color: 'rgba(255,255,255,0.25)',
-            marginTop: 2,
-            fontStyle: 'italic',
+            fontSize: 11,
+            color: 'rgba(255,255,255,0.50)',
+            lineHeight: 1.6,
+            marginBottom: 2,
           }}>
-            Building your 30-day plan...
+            <TypingText lines={[
+              'No direct path found...',
+              'Scanning alternative routes...',
+              'Building your 30-day plan...',
+            ]} />
           </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {[90, 70, 80, 65].map((w, i) => (
+              <div key={i} style={{
+                height: 24,
+                width: w + '%',
+                background: 'rgba(255,255,255,0.05)',
+                borderRadius: 5,
+              }} />
+            ))}
+          </div>
+
         </div>
       )}
 
