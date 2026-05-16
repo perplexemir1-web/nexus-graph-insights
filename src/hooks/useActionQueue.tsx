@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react'
 import { generateActionsFn } from '@/lib/outreach'
 import { useGraphState } from '@/hooks/useGraphState'
 
+const AI_ACTIONS_ENABLED = true
+
+const DEFAULT_ACTIONS = [
+  { priority: 1, boldName: 'James Tan', action: 'Message James Tan — UM alum, direct warm path to Google' },
+  { priority: 2, boldName: 'AI/ML Malaysia', action: 'Join AI/ML Malaysia — bridges you to 3 Google engineers' },
+  { priority: 3, boldName: 'Priya Sharma', action: 'Connect with Priya Sharma — highest warmness in your network' },
+]
+
 export type QueueAction = {
   priority: number
   boldName: string
@@ -16,6 +24,11 @@ export function useActionQueue() {
   useEffect(() => {
     if (!graphData) return
     if (actions.length > 0) return // already loaded
+
+    if (!AI_ACTIONS_ENABLED) {
+      setActions(DEFAULT_ACTIONS)
+      return
+    }
 
     const topNodes = graphData.nodes
       .filter(n => n.kind === 'person' && n.warmness)
