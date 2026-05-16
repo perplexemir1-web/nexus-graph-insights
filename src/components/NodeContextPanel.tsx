@@ -13,9 +13,11 @@ function initials(name: string): string {
 }
 
 export function NodeContextPanel() {
-  const { selectedNode, activePath } = useGraphState();
+  const { selectedNode, activePath, enabledAgents } = useGraphState();
   const { openFor } = useOutreach();
   if (!selectedNode) return null;
+
+  const outreachEnabled = enabledAgents['Outreach writer'];
 
   const warm = selectedNode.warmness ?? 0;
   const sharedSchool = selectedNode.university ?? 'Unknown';
@@ -71,15 +73,63 @@ export function NodeContextPanel() {
       <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.06)', margin: '10px 0' }} />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-        <button onClick={() => selectedNode && openFor(selectedNode)} className="nx-btn-primary" style={{
-          width: '100%', padding: '7px 10px', borderRadius: 6,
-          border: '0.5px solid rgba(244,167,66,0.40)', background: 'rgba(244,167,66,0.09)',
-          color: '#F4A742', fontSize: 11, fontWeight: 500,
-          display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
-          fontFamily: 'inherit', transition: 'all 0.12s',
-        }}>
-          <Mail size={13} strokeWidth={1.8} /> Draft outreach
-        </button>
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => {
+              if (!outreachEnabled) return;
+              selectedNode && openFor(selectedNode);
+            }}
+            className={outreachEnabled ? 'nx-btn-primary' : ''}
+            style={{
+              width: '100%',
+              padding: '7px 10px',
+              borderRadius: 6,
+              border: outreachEnabled
+                ? '0.5px solid rgba(244,167,66,0.40)'
+                : '0.5px solid rgba(255,255,255,0.07)',
+              background: outreachEnabled
+                ? 'rgba(244,167,66,0.09)'
+                : 'rgba(255,255,255,0.03)',
+              color: outreachEnabled
+                ? '#F4A742'
+                : 'rgba(255,255,255,0.22)',
+              fontSize: 11,
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: outreachEnabled ? 'pointer' : 'not-allowed',
+              fontFamily: 'inherit',
+              transition: 'all 0.12s',
+            }}
+          >
+            <Mail
+              size={13}
+              strokeWidth={1.8}
+              color={outreachEnabled ? '#F4A742' : 'rgba(255,255,255,0.22)'}
+            />
+            Draft outreach
+          </button>
+
+          {!outreachEnabled && (
+            <div style={{
+              marginTop: 5,
+              fontSize: 10,
+              color: 'rgba(255,255,255,0.22)',
+              lineHeight: 1.5,
+              padding: '6px 8px',
+              background: 'rgba(255,255,255,0.02)',
+              border: '0.5px solid rgba(255,255,255,0.06)',
+              borderRadius: 5,
+            }}>
+              Enable{' '}
+              <span style={{ color: '#F4A742', fontWeight: 500 }}>
+                Outreach Writer
+              </span>
+              {' '}in the sidebar to draft personalised messages.
+            </div>
+          )}
+        </div>
         <SecondaryBtn icon={<Coffee size={13} strokeWidth={1.8} />}>Coffee chat request</SecondaryBtn>
         <SecondaryBtn icon={<GitPullRequest size={13} strokeWidth={1.8} />}>Request referral</SecondaryBtn>
       </div>
